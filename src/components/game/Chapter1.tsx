@@ -17,11 +17,15 @@ import boxImage from '@/assets/object-box.png';
 export const Chapter1 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
   const addMemory = useGameStore((state) => state.addMemory);
+  const completeChapter = useGameStore((state) => state.completeChapter);
   const triggerSensoryOverload = useGameStore((state) => state.triggerSensoryOverload);
   const sensoryOverload = useGameStore((state) => state.sensoryOverload);
   const playerPosition = useGameStore((state) => state.playerPosition);
-  
+  const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
+
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
+
+  const chapterMemories = ['photo-rowan', 'newspaper-article', 'childhood-drawing', 'mirror-reflection', 'rowans-box'];
   
   const objectPositions = useRef([
     { id: 'photo', pos: [-4, 1.6, -5] },
@@ -44,7 +48,6 @@ export const Chapter1 = () => {
   }, [playerPosition]);
 
   useEffect(() => {
-    // Welcome message
     setTimeout(() => {
       setDialogue("I'm back... after all these years. The house feels smaller now.");
     }, 1000);
@@ -54,33 +57,56 @@ export const Chapter1 = () => {
     };
   }, [setDialogue]);
 
+  useEffect(() => {
+    const collectedInChapter = chapterMemories.filter(mem => collectedMemories.includes(mem));
+    if (collectedInChapter.length === chapterMemories.length) {
+      setTimeout(() => {
+        setDialogue("I've found everything I needed here. Time to move forward.");
+        completeChapter(1);
+      }, 2000);
+    }
+  }, [collectedMemories, completeChapter, setDialogue]);
+
   const handleInteract = (objectId: string) => {
+    const collectedMemories = useGameStore.getState().progress.collectedMemories;
+
     switch (objectId) {
       case 'photo':
-        addMemory('photo-rowan');
-        setDialogue("Rowan and me... we were inseparable. What happened that day?");
+        if (!collectedMemories.includes('photo-rowan')) {
+          addMemory('photo-rowan');
+          setDialogue("Rowan and me... we were inseparable. What happened that day?");
+        }
         break;
-      
+
       case 'newspaper':
-        addMemory('newspaper-article');
-        triggerSensoryOverload(4000);
-        setTimeout(() => {
-          setDialogue('"Boy, 12, institutionalized after tragic bridge incident"... They made me a monster.');
-        }, 4000);
+        if (!collectedMemories.includes('newspaper-article')) {
+          addMemory('newspaper-article');
+          triggerSensoryOverload(4000);
+          setTimeout(() => {
+            setDialogue('"Boy, 12, institutionalized after tragic bridge incident"... They made me a monster.');
+          }, 4000);
+        }
         break;
-      
+
       case 'drawing':
-        addMemory('childhood-drawing');
-        setDialogue("My old drawings... I used to draw the boats we'd make together.");
+        if (!collectedMemories.includes('childhood-drawing')) {
+          addMemory('childhood-drawing');
+          setDialogue("My old drawings... I used to draw the boats we'd make together.");
+        }
         break;
-      
+
       case 'mirror':
-        setDialogue("I don't recognize myself anymore. Who am I without that label?");
+        if (!collectedMemories.includes('mirror-reflection')) {
+          addMemory('mirror-reflection');
+          setDialogue("I don't recognize myself anymore. Who am I without that label?");
+        }
         break;
-      
+
       case 'box':
-        addMemory('rowans-box');
-        setDialogue("Rowan's things... Mom kept them all this time.");
+        if (!collectedMemories.includes('rowans-box')) {
+          addMemory('rowans-box');
+          setDialogue("Rowan's things... Mom kept them all this time.");
+        }
         break;
     }
   };
@@ -151,6 +177,7 @@ export const Chapter1 = () => {
           label="Mirror"
           onInteract={handleInteract}
           color="#A8D4E0"
+          memoryId="mirror-reflection"
           textureUrl={mirrorImage}
         />
 

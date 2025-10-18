@@ -99,10 +99,10 @@ export const Player = ({ onInteract, nearbyObjects = [] }: PlayerProps) => {
 
   return (
     <group ref={playerRef} position={[0, 1, 0]}>
-      <Plane args={[1.5, 1.5]} rotation={[-Math.PI / 2, 0, 0]}>
-        <meshStandardMaterial 
-          map={texture} 
-          transparent 
+      <Plane args={[2, 3]}>
+        <meshStandardMaterial
+          map={texture}
+          transparent
           alphaTest={0.5}
           side={THREE.DoubleSide}
         />

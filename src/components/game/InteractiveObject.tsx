@@ -60,7 +60,7 @@ export const InteractiveObject = ({
       {texture ? (
         <Plane
           ref={meshRef}
-          args={[1, 1]}
+          args={[2, 2]}
           onClick={handleClick}
           onPointerEnter={() => document.body.style.cursor = isNearby ? 'pointer' : 'default'}
           onPointerLeave={() => document.body.style.cursor = 'default'}
@@ -77,7 +77,7 @@ export const InteractiveObject = ({
       ) : (
         <Box
           ref={meshRef}
-          args={[0.6, 0.6, 0.6]}
+          args={[1.2, 1.2, 1.2]}
           onClick={handleClick}
           onPointerEnter={() => document.body.style.cursor = isNearby ? 'pointer' : 'default'}
           onPointerLeave={() => document.body.style.cursor = 'default'}

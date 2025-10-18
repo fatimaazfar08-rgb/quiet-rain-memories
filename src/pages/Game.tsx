@@ -1,14 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Chapter1 } from '@/components/game/Chapter1';
+import { Chapter2 } from '@/components/game/Chapter2';
+import { Chapter3 } from '@/components/game/Chapter3';
+import { Chapter4 } from '@/components/game/Chapter4';
+import { Chapter5 } from '@/components/game/Chapter5';
 import { useGameStore } from '@/store/gameStore';
 
 const ChapterComponents: Record<number, React.ComponentType> = {
   1: Chapter1,
-  // Future chapters will be added here
-  // 2: Chapter2,
-  // 3: Chapter3,
-  // etc.
+  2: Chapter2,
+  3: Chapter3,
+  4: Chapter4,
+  5: Chapter5,
 };
 
 export default function Game() {
