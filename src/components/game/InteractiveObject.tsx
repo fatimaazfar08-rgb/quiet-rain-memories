@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Box, Text } from '@react-three/drei';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { Box, Text, Plane } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '@/store/gameStore';
 
@@ -11,6 +11,7 @@ interface InteractiveObjectProps {
   onInteract: (objectId: string) => void;
   color?: string;
   memoryId?: string;
+  textureUrl?: string;
 }
 
 export const InteractiveObject = ({
@@ -20,12 +21,14 @@ export const InteractiveObject = ({
   onInteract,
   color = "#A8B5E0",
   memoryId,
+  textureUrl,
 }: InteractiveObjectProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isNearby, setIsNearby] = useState(false);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
   
+  const texture = textureUrl ? useLoader(THREE.TextureLoader, textureUrl) : null;
   const isCollected = memoryId ? collectedMemories.includes(memoryId) : false;
 
   useFrame(() => {
@@ -54,21 +57,40 @@ export const InteractiveObject = ({
 
   return (
     <group position={position}>
-      <Box
-        ref={meshRef}
-        args={[0.6, 0.6, 0.6]}
-        onClick={handleClick}
-        onPointerEnter={() => document.body.style.cursor = isNearby ? 'pointer' : 'default'}
-        onPointerLeave={() => document.body.style.cursor = 'default'}
-      >
-        <meshStandardMaterial
-          color={isCollected ? "#4A5568" : color}
-          emissive={isNearby && !isCollected ? color : "#000000"}
-          emissiveIntensity={isNearby && !isCollected ? 0.5 : 0}
-          opacity={isCollected ? 0.3 : 1}
-          transparent
-        />
-      </Box>
+      {texture ? (
+        <Plane
+          ref={meshRef}
+          args={[1, 1]}
+          onClick={handleClick}
+          onPointerEnter={() => document.body.style.cursor = isNearby ? 'pointer' : 'default'}
+          onPointerLeave={() => document.body.style.cursor = 'default'}
+        >
+          <meshStandardMaterial
+            map={texture}
+            transparent
+            opacity={isCollected ? 0.3 : 1}
+            emissive={isNearby && !isCollected ? color : "#000000"}
+            emissiveIntensity={isNearby && !isCollected ? 0.3 : 0}
+            side={THREE.DoubleSide}
+          />
+        </Plane>
+      ) : (
+        <Box
+          ref={meshRef}
+          args={[0.6, 0.6, 0.6]}
+          onClick={handleClick}
+          onPointerEnter={() => document.body.style.cursor = isNearby ? 'pointer' : 'default'}
+          onPointerLeave={() => document.body.style.cursor = 'default'}
+        >
+          <meshStandardMaterial
+            color={isCollected ? "#4A5568" : color}
+            emissive={isNearby && !isCollected ? color : "#000000"}
+            emissiveIntensity={isNearby && !isCollected ? 0.5 : 0}
+            opacity={isCollected ? 0.3 : 1}
+            transparent
+          />
+        </Box>
+      )}
       
       {isNearby && !isCollected && (
         <Text

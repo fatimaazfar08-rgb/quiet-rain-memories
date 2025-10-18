@@ -6,13 +6,42 @@ import { InteractiveObject } from './InteractiveObject';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
+import photoImage from '@/assets/object-photo.png';
+import newspaperImage from '@/assets/object-newspaper.png';
+import drawingImage from '@/assets/object-drawing.png';
+import mirrorImage from '@/assets/object-mirror.png';
+import boxImage from '@/assets/object-box.png';
 
 export const Chapter1 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
   const addMemory = useGameStore((state) => state.addMemory);
   const triggerSensoryOverload = useGameStore((state) => state.triggerSensoryOverload);
   const sensoryOverload = useGameStore((state) => state.sensoryOverload);
+  const playerPosition = useGameStore((state) => state.playerPosition);
+  
+  const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
+  
+  const objectPositions = useRef([
+    { id: 'photo', pos: [-4, 1.6, -5] },
+    { id: 'newspaper', pos: [-2, 1.6, -5] },
+    { id: 'drawing', pos: [3, 1, 3] },
+    { id: 'mirror', pos: [-8, 2, 5] },
+    { id: 'box', pos: [5, 1, -7] },
+  ]);
+
+  // Track nearby objects for E key interaction
+  useEffect(() => {
+    const nearby = objectPositions.current.map(obj => {
+      const distance = Math.sqrt(
+        Math.pow(playerPosition[0] - obj.pos[0], 2) +
+        Math.pow(playerPosition[2] - obj.pos[2], 2)
+      );
+      return { id: obj.id, distance };
+    });
+    setNearbyObjects(nearby);
+  }, [playerPosition]);
 
   useEffect(() => {
     // Welcome message
@@ -82,7 +111,7 @@ export const Chapter1 = () => {
         />
 
         {/* Game Objects */}
-        <Player onInteract={handleInteract} />
+        <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
         <Environment />
 
         {/* Interactive Objects */}
@@ -93,6 +122,7 @@ export const Chapter1 = () => {
           onInteract={handleInteract}
           color="#A8B5E0"
           memoryId="photo-rowan"
+          textureUrl={photoImage}
         />
 
         <InteractiveObject
@@ -102,6 +132,7 @@ export const Chapter1 = () => {
           onInteract={handleInteract}
           color="#E0A8A8"
           memoryId="newspaper-article"
+          textureUrl={newspaperImage}
         />
 
         <InteractiveObject
@@ -111,6 +142,7 @@ export const Chapter1 = () => {
           onInteract={handleInteract}
           color="#D4A8E0"
           memoryId="childhood-drawing"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -119,6 +151,7 @@ export const Chapter1 = () => {
           label="Mirror"
           onInteract={handleInteract}
           color="#A8D4E0"
+          textureUrl={mirrorImage}
         />
 
         <InteractiveObject
@@ -128,6 +161,7 @@ export const Chapter1 = () => {
           onInteract={handleInteract}
           color="#E0D4A8"
           memoryId="rowans-box"
+          textureUrl={boxImage}
         />
 
         <OrbitControls
@@ -139,7 +173,7 @@ export const Chapter1 = () => {
         />
       </Canvas>
 
-      <GameHUD chapter={1} chapterTitle="Homecoming" />
+      <GameHUD chapter={1} chapterTitle="Homecoming" nearbyObjects={nearbyObjects} />
       <DialogueBox />
     </div>
   );

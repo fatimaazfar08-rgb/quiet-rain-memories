@@ -6,12 +6,15 @@ import { Menu, Book } from 'lucide-react';
 interface GameHUDProps {
   chapter: number;
   chapterTitle: string;
+  nearbyObjects?: Array<{ id: string; distance: number }>;
 }
 
-export const GameHUD = ({ chapter, chapterTitle }: GameHUDProps) => {
+export const GameHUD = ({ chapter, chapterTitle, nearbyObjects = [] }: GameHUDProps) => {
   const { progress, setMenuOpen, setPaused } = useGameStore();
   const collectedMemories = progress.collectedMemories.length;
   const totalMemories = 5; // Chapter 1 has 5 collectible memories
+  
+  const canInteract = nearbyObjects.some(obj => obj.distance < 3);
 
   const handleMenuClick = () => {
     setPaused(true);
@@ -53,6 +56,16 @@ export const GameHUD = ({ chapter, chapterTitle }: GameHUDProps) => {
         <div className="mt-4 text-center text-sm text-muted-foreground">
           <p>WASD to move • E to interact • ESC for menu</p>
         </div>
+        
+        {/* Interaction Prompt */}
+        {canInteract && (
+          <div className="mt-2 text-center animate-pulse">
+            <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary rounded-lg px-4 py-2">
+              <span className="text-primary font-bold text-lg">Press E</span>
+              <span className="text-primary-foreground">to interact</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Anxiety Level Indicator */}

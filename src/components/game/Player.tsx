@@ -1,18 +1,22 @@
 import { useRef, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Sphere } from '@react-three/drei';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { Plane } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '@/store/gameStore';
+import characterImage from '@/assets/character-eli.png';
 
 interface PlayerProps {
   onInteract?: (objectId: string) => void;
+  nearbyObjects?: Array<{ id: string; distance: number }>;
 }
 
-export const Player = ({ onInteract }: PlayerProps) => {
-  const playerRef = useRef<THREE.Mesh>(null);
+export const Player = ({ onInteract, nearbyObjects = [] }: PlayerProps) => {
+  const playerRef = useRef<THREE.Group>(null);
   const velocityRef = useRef(new THREE.Vector3());
   const setPlayerPosition = useGameStore((state) => state.setPlayerPosition);
   const isPaused = useGameStore((state) => state.isPaused);
+  
+  const texture = useLoader(THREE.TextureLoader, characterImage);
   
   const moveSpeed = 5;
   const keys = useRef({
@@ -29,9 +33,12 @@ export const Player = ({ onInteract }: PlayerProps) => {
       if (key in keys.current) {
         keys.current[key as keyof typeof keys.current] = true;
       }
-      if (key === 'e' && onInteract) {
-        // Trigger interaction
-        onInteract('nearest-object');
+      if (key === 'e' && onInteract && nearbyObjects.length > 0) {
+        // Trigger interaction with nearest object
+        const nearest = nearbyObjects.sort((a, b) => a.distance - b.distance)[0];
+        if (nearest && nearest.distance < 3) {
+          onInteract(nearest.id);
+        }
       }
     };
 
@@ -49,7 +56,7 @@ export const Player = ({ onInteract }: PlayerProps) => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [onInteract]);
+  }, [onInteract, nearbyObjects]);
 
   useFrame((state, delta) => {
     if (!playerRef.current || isPaused) return;
@@ -91,8 +98,15 @@ export const Player = ({ onInteract }: PlayerProps) => {
   });
 
   return (
-    <Sphere ref={playerRef} args={[0.5, 16, 16]} position={[0, 1, 0]}>
-      <meshStandardMaterial color="#8B9FDE" emissive="#4A5F9D" emissiveIntensity={0.3} />
-    </Sphere>
+    <group ref={playerRef} position={[0, 1, 0]}>
+      <Plane args={[1.5, 1.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <meshStandardMaterial 
+          map={texture} 
+          transparent 
+          alphaTest={0.5}
+          side={THREE.DoubleSide}
+        />
+      </Plane>
+    </group>
   );
 };
