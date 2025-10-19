@@ -18,6 +18,7 @@ import newspaperImage from '@/assets/object-newspaper.png';
 import drawingImage from '@/assets/object-drawing.png';
 import mirrorImage from '@/assets/object-mirror.png';
 import boxImage from '@/assets/object-box.png';
+import bedroomBg from '@/assets/bg-bedroom.png';
 
 export const Chapter1 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
@@ -166,7 +167,7 @@ export const Chapter1 = () => {
         <RainEffect />
         {/* Game Objects */}
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
-        <Environment theme="home" />
+        <Environment theme="home" backgroundImage={bedroomBg} />
         
         {/* Bullies */}
         <Bully

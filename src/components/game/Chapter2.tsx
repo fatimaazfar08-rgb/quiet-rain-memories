@@ -6,6 +6,7 @@ import { InteractiveObject } from './InteractiveObject';
 import { Bully } from './Bully';
 import { NPC } from './NPC';
 import { RainEffect } from './RainEffect';
+import { MovingObstacle } from './MovingObstacle';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
@@ -180,6 +181,21 @@ export const Chapter2 = () => {
         <Bully
           id="bully3"
           initialPosition={[3, 1, -8]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+
+        {/* Moving Obstacles */}
+        <MovingObstacle
+          id="obstacle1"
+          initialPosition={[-6, 1, 0]}
+          path={[
+            [-6, 1, 0],
+            [6, 1, 0],
+            [6, 1, -6],
+            [-6, 1, -6],
+          ]}
+          speed={0.03}
           onPlayerContact={handleBullyContact}
           playerPosition={playerPosition}
         />

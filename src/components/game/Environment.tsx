@@ -10,9 +10,15 @@ interface EnvironmentProps {
 export const Environment = ({ theme = 'home', backgroundImage }: EnvironmentProps) => {
   const bgTexture = backgroundImage ? useLoader(THREE.TextureLoader, backgroundImage) : null;
 
+  if (bgTexture) {
+    bgTexture.wrapS = THREE.RepeatWrapping;
+    bgTexture.wrapT = THREE.RepeatWrapping;
+    bgTexture.repeat.set(2, 2);
+  }
+
   return (
     <>
-      {/* Ground */}
+      {/* Ground with background texture */}
       <Plane
         args={[100, 100]}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -20,7 +26,7 @@ export const Environment = ({ theme = 'home', backgroundImage }: EnvironmentProp
         receiveShadow
       >
         {bgTexture ? (
-          <meshStandardMaterial map={bgTexture} />
+          <meshStandardMaterial map={bgTexture} transparent opacity={0.7} />
         ) : (
           <meshStandardMaterial color="#2C3E50" roughness={0.8} />
         )}

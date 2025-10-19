@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { Player } from './Player';
+import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
 import { Bully } from './Bully';
 import { RainEffect } from './RainEffect';
@@ -155,6 +156,7 @@ export const Chapter4 = () => {
         <RainEffect />
         <WaterSurface />
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
+        <Environment theme="bridge" backgroundImage={bridgeBg} />
 
         {/* Bullies on the bridge */}
         <Bully

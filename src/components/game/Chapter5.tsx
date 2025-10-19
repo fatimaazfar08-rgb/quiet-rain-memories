@@ -11,12 +11,11 @@ import { useLoader } from '@react-three/fiber';
 import bullyImage from '@/assets/character-bully.png';
 import eliImage from '@/assets/character-eli.png';
 import cemeteryBg from '@/assets/bg-cemetery.png';
-import { useNavigate } from 'react-router-dom';
+import { EndingScreen } from './EndingScreen';
 
 export const Chapter5 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
   const { playSound } = useSoundEffects();
-  const navigate = useNavigate();
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
   const [showEnding, setShowEnding] = useState(false);
 
@@ -46,11 +45,10 @@ export const Chapter5 = () => {
 
     setTimeout(() => {
       setShowEnding(true);
-      setTimeout(() => navigate('/'), 5000);
     }, 36000);
 
     return () => timers.forEach(clearTimeout);
-  }, [setDialogue, playSound, navigate]);
+  }, [setDialogue, playSound]);
 
   return (
     <div className="w-full h-screen relative">
@@ -92,16 +90,7 @@ export const Chapter5 = () => {
       <GameHUD chapter={5} chapterTitle="The Quiet Rain" nearbyObjects={nearbyObjects} />
       <DialogueBox />
 
-      {showEnding && (
-        <div className="absolute inset-0 bg-background/95 flex items-center justify-center z-50 animate-fade-in">
-          <div className="text-center max-w-2xl p-8">
-            <h1 className="text-5xl font-bold mb-6">The Quiet Rain</h1>
-            <p className="text-xl mb-4">Eli found peace not in changing the past, but in understanding it.</p>
-            <p className="text-lg mb-4">The rain still falls, but it no longer drowns out the truth.</p>
-            <p className="text-md italic">Thank you for playing.</p>
-          </div>
-        </div>
-      )}
+      {showEnding && <EndingScreen />}
     </div>
   );
 };

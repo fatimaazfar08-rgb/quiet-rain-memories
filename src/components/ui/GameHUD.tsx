@@ -11,8 +11,20 @@ interface GameHUDProps {
 
 export const GameHUD = ({ chapter, chapterTitle, nearbyObjects = [] }: GameHUDProps) => {
   const { progress, setMenuOpen, setPaused } = useGameStore();
-  const collectedMemories = progress.collectedMemories.length;
-  const totalMemories = 5; // Chapter 1 has 5 collectible memories
+
+  const chapterMemoryKeys: Record<number, string[]> = {
+    1: ['photo-rowan', 'newspaper-article', 'childhood-drawing', 'mirror-reflection', 'rowans-box'],
+    2: ['desk-memory', 'locker-memory', 'note-memory', 'classroom-memory', 'hallway-memory'],
+    3: ['sketch1', 'sketch2', 'sketch3', 'sketch4', 'sketch5'],
+    4: ['bridge-start', 'bridge-middle', 'bridge-truth', 'bridge-water', 'bridge-end'],
+    5: [],
+  };
+
+  const currentChapterMemories = chapterMemoryKeys[chapter] || [];
+  const collectedMemories = progress.collectedMemories.filter(mem =>
+    currentChapterMemories.includes(mem)
+  ).length;
+  const totalMemories = currentChapterMemories.length;
   
   const canInteract = nearbyObjects.some(obj => obj.distance < 3);
 
@@ -46,10 +58,10 @@ export const GameHUD = ({ chapter, chapterTitle, nearbyObjects = [] }: GameHUDPr
           <div className="flex items-center gap-3 mb-2">
             <Book className="w-5 h-5 text-accent" />
             <span className="text-sm font-medium text-foreground">
-              Score: {collectedMemories}/5
+              Score: {collectedMemories}/{totalMemories}
             </span>
           </div>
-          <Progress value={(collectedMemories / totalMemories) * 100} className="h-2" />
+          <Progress value={totalMemories > 0 ? (collectedMemories / totalMemories) * 100 : 0} className="h-2" />
         </div>
 
         {/* Controls Hint */}
