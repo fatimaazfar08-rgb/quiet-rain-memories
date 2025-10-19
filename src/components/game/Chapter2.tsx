@@ -19,6 +19,7 @@ import newspaperImage from '@/assets/object-newspaper.png';
 import drawingImage from '@/assets/object-drawing.png';
 import boxImage from '@/assets/object-box.png';
 import mirrorImage from '@/assets/object-mirror.png';
+import obstacleImage from '@/assets/character-bully.png';
 
 export const Chapter2 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
@@ -121,13 +122,28 @@ export const Chapter2 = () => {
     }
   };
 
-  const handleNPCInteract = (npcId: string, dialogues: string[]) => {
-    if (npcId === 'leah') {
-      playSound('dialogue');
-      setDialogue(dialogues[npcDialogueIndex % dialogues.length]);
+ const handleNPCInteract = (npcId: string, dialogues: { speaker: string; text: string }[]) => {
+  if (npcId === 'leah') {
+    const currentIndex = npcDialogueIndex % dialogues.length;
+    const currentLine = dialogues[currentIndex];
+
+    // Play a sound and show dialogue
+    playSound('dialogue');
+    setDialogue(`${currentLine.speaker}: ${currentLine.text}`);
+
+    // Optionally: if Eli is speaking, delay slightly before auto-continuing Leah's next line
+    if (currentLine.speaker === 'Eli' && currentIndex + 1 < dialogues.length) {
+      setTimeout(() => {
+        const nextLine = dialogues[currentIndex + 1];
+        setDialogue(`${nextLine.speaker}: ${nextLine.text}`);
+        setNpcDialogueIndex(prev => prev + 2); // jump ahead
+      }, 2500);
+    } else {
       setNpcDialogueIndex(prev => prev + 1);
     }
-  };
+  }
+};
+
 
   const handleBullyContact = () => {
     if (!isDead) {
@@ -186,35 +202,39 @@ export const Chapter2 = () => {
         />
 
         {/* Moving Obstacles */}
-        <MovingObstacle
-          id="obstacle1"
-          initialPosition={[-6, 1, 0]}
-          path={[
-            [-6, 1, 0],
-            [6, 1, 0],
-            [6, 1, -6],
-            [-6, 1, -6],
-          ]}
-          speed={0.03}
-          onPlayerContact={handleBullyContact}
-          playerPosition={playerPosition}
-        />
+        
+<MovingObstacle
+  id="obstacle1"
+  initialPosition={[-6, 1, 0]}
+  path={[
+    [-6, 1, 0],
+    [6, 1, 0],
+    [6, 1, -6],
+    [-6, 1, -6],
+  ]}
+  speed={0.03}
+  onPlayerContact={handleBullyContact}
+  playerPosition={playerPosition}
+  textureUrl={obstacleImage} // ✅ Add this line
+/>
 
         {/* NPC - Leah */}
         <NPC
-          id="leah"
-          name="Leah"
-          position={[-10, 1, -10]}
-          textureUrl={leahImage}
-          dialogues={[
-            "Welcome back, Eli. I know this place holds difficult memories.",
-            "I found Rowan's old things in the storage room. Including their sketchbook.",
-            "The other students... they've grown up, but some haven't learned kindness.",
-            "Take your time exploring. I'll be here if you need to talk."
-          ]}
-          playerPosition={playerPosition}
-          onInteract={handleNPCInteract}
-        />
+  id="leah"
+  name="Leah"
+  position={[-7, 1, -7]}
+  textureUrl={leahImage}
+  dialogues={[
+    { speaker: "Leah", text: "Welcome back, Eli. I know this place holds difficult memories." },
+    { speaker: "Eli", text: "It feels like time stopped here... everything’s the same, yet not." },
+    { speaker: "Leah", text: "You’re not alone. The past doesn’t have to define you." },
+    { speaker: "Eli", text: "Thanks, Leah. I’m trying to move forward." },
+    { speaker: "Leah", text: "Take your time exploring. I’ll be here if you need to talk." }
+  ]}
+  playerPosition={playerPosition}
+  onInteract={handleNPCInteract}
+/>
+
 
         <InteractiveObject
           position={[-4, 1, -5]}
