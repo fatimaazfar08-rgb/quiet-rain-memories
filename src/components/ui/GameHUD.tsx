@@ -46,7 +46,7 @@ export const GameHUD = ({ chapter, chapterTitle, nearbyObjects = [] }: GameHUDPr
           <div className="flex items-center gap-3 mb-2">
             <Book className="w-5 h-5 text-accent" />
             <span className="text-sm font-medium text-foreground">
-              Memories: {collectedMemories}/{totalMemories}
+              Score: {collectedMemories}/5
             </span>
           </div>
           <Progress value={(collectedMemories / totalMemories) * 100} className="h-2" />

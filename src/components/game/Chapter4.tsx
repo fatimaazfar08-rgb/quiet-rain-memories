@@ -1,21 +1,31 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { Player } from './Player';
-import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
+import { Bully } from './Bully';
+import { RainEffect } from './RainEffect';
+import { WaterSurface } from './WaterSurface';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useEffect, useState, useRef } from 'react';
+import bridgeBg from '@/assets/bg-bridge.png';
+import photoImage from '@/assets/object-photo.png';
+import mirrorImage from '@/assets/object-mirror.png';
+import drawingImage from '@/assets/object-drawing.png';
 
 export const Chapter4 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
   const addMemory = useGameStore((state) => state.addMemory);
   const completeChapter = useGameStore((state) => state.completeChapter);
   const triggerSensoryOverload = useGameStore((state) => state.triggerSensoryOverload);
+  const triggerPanicAttack = useGameStore((state) => state.triggerPanicAttack);
   const sensoryOverload = useGameStore((state) => state.sensoryOverload);
+  const isDead = useGameStore((state) => state.isDead);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
+  const { playSound } = useSoundEffects();
 
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
 
@@ -67,6 +77,7 @@ export const Chapter4 = () => {
       case 'entrance':
         if (!currentCollected.includes('bridge-start')) {
           addMemory('bridge-start');
+          playSound('collect');
           setDialogue("We came here to launch the boat we made together.");
         }
         break;
@@ -74,6 +85,7 @@ export const Chapter4 = () => {
       case 'railing':
         if (!currentCollected.includes('bridge-middle')) {
           addMemory('bridge-middle');
+          playSound('panic');
           triggerSensoryOverload(2000);
           setTimeout(() => {
             setDialogue("Rowan leaned over to see it float away...");
@@ -107,6 +119,14 @@ export const Chapter4 = () => {
     }
   };
 
+  const handleBullyContact = () => {
+    if (!isDead) {
+      playSound('panic');
+      triggerPanicAttack();
+      setDialogue("They're here... the ones who chased us... no, no, no...");
+    }
+  };
+
   return (
     <div className="w-full h-screen relative">
       <Canvas
@@ -132,8 +152,29 @@ export const Chapter4 = () => {
           azimuth={0.15}
         />
 
+        <RainEffect />
+        <WaterSurface />
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
-        <Environment />
+
+        {/* Bullies on the bridge */}
+        <Bully
+          id="bully1"
+          initialPosition={[8, 1, -4]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+        <Bully
+          id="bully2"
+          initialPosition={[-7, 1, 5]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+        <Bully
+          id="bully3"
+          initialPosition={[6, 1, 6]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
 
         <InteractiveObject
           position={[-6, 1, -3]}
@@ -142,6 +183,7 @@ export const Chapter4 = () => {
           onInteract={handleInteract}
           color="#A8D8E0"
           memoryId="bridge-start"
+          textureUrl={photoImage}
         />
 
         <InteractiveObject
@@ -151,6 +193,7 @@ export const Chapter4 = () => {
           onInteract={handleInteract}
           color="#E0C8A8"
           memoryId="bridge-middle"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -160,6 +203,7 @@ export const Chapter4 = () => {
           onInteract={handleInteract}
           color="#D8A8E0"
           memoryId="bridge-truth"
+          textureUrl={mirrorImage}
         />
 
         <InteractiveObject
@@ -169,6 +213,7 @@ export const Chapter4 = () => {
           onInteract={handleInteract}
           color="#A8C8E0"
           memoryId="bridge-water"
+          textureUrl={mirrorImage}
         />
 
         <InteractiveObject
@@ -178,6 +223,7 @@ export const Chapter4 = () => {
           onInteract={handleInteract}
           color="#C8E0A8"
           memoryId="bridge-end"
+          textureUrl={photoImage}
         />
 
         <OrbitControls
@@ -191,6 +237,17 @@ export const Chapter4 = () => {
 
       <GameHUD chapter={4} chapterTitle="The Bridge" nearbyObjects={nearbyObjects} />
       <DialogueBox />
+      
+      {isDead && (
+        <div className="absolute inset-0 bg-destructive/80 flex items-center justify-center z-50">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-destructive-foreground mb-4 animate-pulse">
+              Panic Attack
+            </h2>
+            <p className="text-xl text-destructive-foreground">Restarting...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

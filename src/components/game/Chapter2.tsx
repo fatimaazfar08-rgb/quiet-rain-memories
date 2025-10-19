@@ -5,9 +5,11 @@ import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
 import { Bully } from './Bully';
 import { NPC } from './NPC';
+import { RainEffect } from './RainEffect';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useEffect, useState, useRef } from 'react';
 import leahImage from '@/assets/character-leah.png';
 import schoolBg from '@/assets/bg-school.png';
@@ -27,6 +29,7 @@ export const Chapter2 = () => {
   const isDead = useGameStore((state) => state.isDead);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
+  const { playSound } = useSoundEffects();
 
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
   const [npcDialogueIndex, setNpcDialogueIndex] = useState(0);
@@ -79,6 +82,7 @@ export const Chapter2 = () => {
       case 'desk':
         if (!currentCollected.includes('desk-memory')) {
           addMemory('desk-memory');
+          playSound('collect');
           setDialogue("This was my desk. I carved our initials under here.");
         }
         break;
@@ -118,6 +122,7 @@ export const Chapter2 = () => {
 
   const handleNPCInteract = (npcId: string, dialogues: string[]) => {
     if (npcId === 'leah') {
+      playSound('dialogue');
       setDialogue(dialogues[npcDialogueIndex % dialogues.length]);
       setNpcDialogueIndex(prev => prev + 1);
     }
@@ -125,6 +130,7 @@ export const Chapter2 = () => {
 
   const handleBullyContact = () => {
     if (!isDead) {
+      playSound('panic');
       triggerPanicAttack();
       setDialogue("Can't escape them... heart racing... everything is closing in...");
     }
@@ -154,6 +160,7 @@ export const Chapter2 = () => {
           azimuth={0.3}
         />
 
+        <RainEffect />
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
         <Environment theme="school" backgroundImage={schoolBg} />
 

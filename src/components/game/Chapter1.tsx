@@ -5,9 +5,11 @@ import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
 import { Bully } from './Bully';
 import { NPC } from './NPC';
+import { RainEffect } from './RainEffect';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useEffect, useState, useRef } from 'react';
 import leahImage from '@/assets/character-leah.png';
 
@@ -27,6 +29,7 @@ export const Chapter1 = () => {
   const isDead = useGameStore((state) => state.isDead);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
+  const { playSound } = useSoundEffects();
 
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
   const [npcDialogueIndex, setNpcDialogueIndex] = useState(0);
@@ -80,6 +83,7 @@ export const Chapter1 = () => {
       case 'photo':
         if (!collectedMemories.includes('photo-rowan')) {
           addMemory('photo-rowan');
+          playSound('collect');
           setDialogue("Rowan and me... we were inseparable. What happened that day?");
         }
         break;
@@ -87,6 +91,7 @@ export const Chapter1 = () => {
       case 'newspaper':
         if (!collectedMemories.includes('newspaper-article')) {
           addMemory('newspaper-article');
+          playSound('panic');
           triggerSensoryOverload(4000);
           setTimeout(() => {
             setDialogue('"Boy, 12, institutionalized after tragic bridge incident"... They made me a monster.');
@@ -119,6 +124,7 @@ export const Chapter1 = () => {
 
   const handleNPCInteract = (npcId: string, dialogues: string[]) => {
     if (npcId === 'leah') {
+      playSound('dialogue');
       setDialogue(dialogues[npcDialogueIndex % dialogues.length]);
       setNpcDialogueIndex(prev => prev + 1);
     }
@@ -126,6 +132,7 @@ export const Chapter1 = () => {
 
   const handleBullyContact = () => {
     if (!isDead) {
+      playSound('panic');
       triggerPanicAttack();
       setDialogue("Too close... can't breathe... everything is spinning...");
     }
@@ -156,6 +163,7 @@ export const Chapter1 = () => {
           azimuth={0.25}
         />
 
+        <RainEffect />
         {/* Game Objects */}
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
         <Environment theme="home" />

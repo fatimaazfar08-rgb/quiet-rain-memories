@@ -3,10 +3,15 @@ import { OrbitControls, Sky } from '@react-three/drei';
 import { Player } from './Player';
 import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
+import { Bully } from './Bully';
+import { RainEffect } from './RainEffect';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useEffect, useState, useRef } from 'react';
+import bedroomBg from '@/assets/bg-bedroom.png';
+import drawingImage from '@/assets/object-drawing.png';
 
 export const Chapter3 = () => {
   const setDialogue = useGameStore((state) => state.setDialogue);
@@ -14,8 +19,11 @@ export const Chapter3 = () => {
   const completeChapter = useGameStore((state) => state.completeChapter);
   const triggerSensoryOverload = useGameStore((state) => state.triggerSensoryOverload);
   const sensoryOverload = useGameStore((state) => state.sensoryOverload);
+  const isDead = useGameStore((state) => state.isDead);
+  const triggerPanicAttack = useGameStore((state) => state.triggerPanicAttack);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
+  const { playSound } = useSoundEffects();
 
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
 
@@ -67,6 +75,7 @@ export const Chapter3 = () => {
       case 'sketchbook1':
         if (!currentCollected.includes('sketch1')) {
           addMemory('sketch1');
+          playSound('collect');
           setDialogue("A drawing of the two of us... smiling.");
         }
         break;
@@ -81,6 +90,7 @@ export const Chapter3 = () => {
       case 'sketchbook3':
         if (!currentCollected.includes('sketch3')) {
           addMemory('sketch3');
+          playSound('panic');
           triggerSensoryOverload(3000);
           setTimeout(() => {
             setDialogue("Rowan drew their fears... I never noticed how scared they were.");
@@ -101,6 +111,14 @@ export const Chapter3 = () => {
           setDialogue("The last page... it's blank except for one word: 'Sorry.'");
         }
         break;
+    }
+  };
+
+  const handleBullyContact = () => {
+    if (!isDead) {
+      playSound('panic');
+      triggerPanicAttack();
+      setDialogue("Not again... I can't breathe... too much...");
     }
   };
 
@@ -128,8 +146,23 @@ export const Chapter3 = () => {
           azimuth={0.2}
         />
 
+        <RainEffect />
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
-        <Environment />
+        <Environment theme="home" backgroundImage={bedroomBg} />
+
+        {/* Bullies - Less aggressive in bedroom */}
+        <Bully
+          id="bully1"
+          initialPosition={[7, 1, -7]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+        <Bully
+          id="bully2"
+          initialPosition={[-8, 1, 6]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
 
         <InteractiveObject
           position={[-3, 1, -4]}
@@ -138,6 +171,7 @@ export const Chapter3 = () => {
           onInteract={handleInteract}
           color="#C8A8E0"
           memoryId="sketch1"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -147,6 +181,7 @@ export const Chapter3 = () => {
           onInteract={handleInteract}
           color="#A8B8E0"
           memoryId="sketch2"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -156,6 +191,7 @@ export const Chapter3 = () => {
           onInteract={handleInteract}
           color="#E0A8B8"
           memoryId="sketch3"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -165,6 +201,7 @@ export const Chapter3 = () => {
           onInteract={handleInteract}
           color="#B8E0A8"
           memoryId="sketch4"
+          textureUrl={drawingImage}
         />
 
         <InteractiveObject
@@ -174,6 +211,7 @@ export const Chapter3 = () => {
           onInteract={handleInteract}
           color="#E0C8A8"
           memoryId="sketch5"
+          textureUrl={drawingImage}
         />
 
         <OrbitControls
@@ -187,6 +225,17 @@ export const Chapter3 = () => {
 
       <GameHUD chapter={3} chapterTitle="The Sketchbook" nearbyObjects={nearbyObjects} />
       <DialogueBox />
+      
+      {isDead && (
+        <div className="absolute inset-0 bg-destructive/80 flex items-center justify-center z-50">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-destructive-foreground mb-4 animate-pulse">
+              Panic Attack
+            </h2>
+            <p className="text-xl text-destructive-foreground">Restarting...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

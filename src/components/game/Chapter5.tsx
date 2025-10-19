@@ -1,194 +1,107 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky } from '@react-three/drei';
-import { Player } from './Player';
-import { Environment } from './Environment';
-import { InteractiveObject } from './InteractiveObject';
+import { OrbitControls, Sky, Text, Box, Plane } from '@react-three/drei';
+import { RainEffect } from './RainEffect';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
-import { useEffect, useState, useRef } from 'react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useEffect, useState } from 'react';
+import * as THREE from 'three';
+import { useLoader } from '@react-three/fiber';
+import bullyImage from '@/assets/character-bully.png';
+import eliImage from '@/assets/character-eli.png';
+import cemeteryBg from '@/assets/bg-cemetery.png';
 import { useNavigate } from 'react-router-dom';
 
 export const Chapter5 = () => {
-  const navigate = useNavigate();
   const setDialogue = useGameStore((state) => state.setDialogue);
-  const addMemory = useGameStore((state) => state.addMemory);
-  const completeChapter = useGameStore((state) => state.completeChapter);
-  const sensoryOverload = useGameStore((state) => state.sensoryOverload);
-  const playerPosition = useGameStore((state) => state.playerPosition);
-  const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
-
+  const { playSound } = useSoundEffects();
+  const navigate = useNavigate();
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
+  const [showEnding, setShowEnding] = useState(false);
 
-  const chapterMemories = ['acceptance', 'forgiveness', 'healing', 'hope', 'peace'];
-
-  const objectPositions = useRef([
-    { id: 'letter', pos: [0, 1, -4] },
-    { id: 'tree', pos: [-4, 1, 2] },
-    { id: 'bench', pos: [4, 1, 2] },
-    { id: 'flower', pos: [0, 1, 4] },
-    { id: 'sky', pos: [0, 1, 0] },
-  ]);
+  const bullyTexture = useLoader(THREE.TextureLoader, bullyImage);
+  const eliTexture = useLoader(THREE.TextureLoader, eliImage);
+  const bgTexture = useLoader(THREE.TextureLoader, cemeteryBg);
 
   useEffect(() => {
-    const nearby = objectPositions.current.map(obj => {
-      const distance = Math.sqrt(
-        Math.pow(playerPosition[0] - obj.pos[0], 2) +
-        Math.pow(playerPosition[2] - obj.pos[2], 2)
-      );
-      return { id: obj.id, distance };
-    });
-    setNearbyObjects(nearby);
-  }, [playerPosition]);
+    const dialogues = [
+      { delay: 1000, text: "I'm here, Rowan. At your grave. After all these years." },
+      { delay: 5000, text: "Bully 1: 'Eli... we need to talk to you.'" },
+      { delay: 8000, text: "Bully 2: 'We've carried this guilt for so long. We're so sorry.'" },
+      { delay: 12000, text: "Bully 3: 'That day... we were just kids. But what we did was wrong.'" },
+      { delay: 16000, text: "Eli: 'You made me believe I was a monster. That Rowan's death was my fault.'" },
+      { delay: 20000, text: "Bully 1: 'We know. We were scared. We let you take the blame. We're sorry.'" },
+      { delay: 24000, text: "Eli: 'I've spent years hating myself. But... it wasn't my fault. It was an accident.'" },
+      { delay: 28000, text: "Eli: 'Rowan... you tried to protect me. I understand now. Thank you.'" },
+      { delay: 32000, text: "Eli: 'I forgive you all. And... I forgive myself.'" },
+    ];
 
-  useEffect(() => {
-    setTimeout(() => {
-      setDialogue("The quiet rain falls softly. I can finally breathe.");
-    }, 1000);
-
-    return () => {
-      setDialogue(null);
-    };
-  }, [setDialogue]);
-
-  useEffect(() => {
-    const collectedInChapter = chapterMemories.filter(mem => collectedMemories.includes(mem));
-    if (collectedInChapter.length === chapterMemories.length) {
+    const timers = dialogues.map(({ delay, text }) =>
       setTimeout(() => {
-        setDialogue("Thank you, Rowan. I'm ready to let go now. I'm ready to heal.");
-        completeChapter(5);
-        setTimeout(() => {
-          navigate('/');
-        }, 4000);
-      }, 2000);
-    }
-  }, [collectedMemories, completeChapter, setDialogue, navigate]);
+        playSound('dialogue');
+        setDialogue(text);
+      }, delay)
+    );
 
-  const handleInteract = (objectId: string) => {
-    const currentCollected = useGameStore.getState().progress.collectedMemories;
+    setTimeout(() => {
+      setShowEnding(true);
+      setTimeout(() => navigate('/'), 5000);
+    }, 36000);
 
-    switch (objectId) {
-      case 'letter':
-        if (!currentCollected.includes('acceptance')) {
-          addMemory('acceptance');
-          setDialogue("A letter I wrote but never sent. 'Dear Rowan, I'm learning to accept what happened.'");
-        }
-        break;
-
-      case 'tree':
-        if (!currentCollected.includes('forgiveness')) {
-          addMemory('forgiveness');
-          setDialogue("The tree we used to climb. I forgive myself. I forgive us both.");
-        }
-        break;
-
-      case 'bench':
-        if (!currentCollected.includes('healing')) {
-          addMemory('healing');
-          setDialogue("Sitting here, I realize healing isn't forgetting. It's remembering without pain.");
-        }
-        break;
-
-      case 'flower':
-        if (!currentCollected.includes('hope')) {
-          addMemory('hope');
-          setDialogue("New flowers blooming where we once played. Life continues. Hope remains.");
-        }
-        break;
-
-      case 'sky':
-        if (!currentCollected.includes('peace')) {
-          addMemory('peace');
-          setDialogue("Looking up at the quiet rain, I finally feel peace. Rowan would want me to live.");
-        }
-        break;
-    }
-  };
+    return () => timers.forEach(clearTimeout);
+  }, [setDialogue, playSound, navigate]);
 
   return (
     <div className="w-full h-screen relative">
-      <Canvas
-        shadows
-        camera={{ position: [0, 8, 10], fov: 60 }}
-        className={sensoryOverload ? 'sensory-overload' : ''}
-      >
-        <ambientLight intensity={0.5} />
-        <directionalLight
-          position={[5, 10, 5]}
-          intensity={0.7}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-        />
-        <pointLight position={[-5, 3, -5]} intensity={0.5} color="#9BB5D3" />
-        <pointLight position={[5, 3, 5]} intensity={0.5} color="#B5D3E0" />
+      <Canvas shadows camera={{ position: [0, 5, 15], fov: 60 }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[5, 10, 5]} intensity={0.4} castShadow />
+        <pointLight position={[0, 3, 0]} intensity={0.6} color="#9B8DC3" />
+        <Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0.7} azimuth={0.1} />
+        <RainEffect />
+        
+        <Plane args={[100, 100]} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+          <meshStandardMaterial map={bgTexture} />
+        </Plane>
 
-        <Sky
-          distance={450000}
-          sunPosition={[0, 1, 0]}
-          inclination={0.5}
-          azimuth={0.25}
-        />
+        <group position={[0, 0, 0]}>
+          <Box args={[2, 3, 0.3]} position={[0, 1.5, 0]}>
+            <meshStandardMaterial color="#4A4A4A" roughness={0.9} />
+          </Box>
+          <Text position={[0, 2, 0.2]} fontSize={0.3} color="#ffffff" anchorX="center">Rowan</Text>
+        </group>
 
-        <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
-        <Environment />
+        <group position={[0, 1, 3]}>
+          <Plane args={[2, 3]}><meshStandardMaterial map={eliTexture} transparent alphaTest={0.5} side={THREE.DoubleSide} /></Plane>
+        </group>
 
-        <InteractiveObject
-          position={[0, 1, -4]}
-          objectId="letter"
-          label="Unsent Letter"
-          onInteract={handleInteract}
-          color="#D8E0F0"
-          memoryId="acceptance"
-        />
+        <group position={[-4, 1, 1]}>
+          <Plane args={[2, 3]}><meshStandardMaterial map={bullyTexture} transparent alphaTest={0.5} side={THREE.DoubleSide} /></Plane>
+        </group>
+        <group position={[4, 1, 1]}>
+          <Plane args={[2, 3]}><meshStandardMaterial map={bullyTexture} transparent alphaTest={0.5} side={THREE.DoubleSide} /></Plane>
+        </group>
+        <group position={[0, 1, -2]}>
+          <Plane args={[2, 3]}><meshStandardMaterial map={bullyTexture} transparent alphaTest={0.5} side={THREE.DoubleSide} /></Plane>
+        </group>
 
-        <InteractiveObject
-          position={[-4, 1, 2]}
-          objectId="tree"
-          label="Memory Tree"
-          onInteract={handleInteract}
-          color="#C8E0D8"
-          memoryId="forgiveness"
-        />
-
-        <InteractiveObject
-          position={[4, 1, 2]}
-          objectId="bench"
-          label="Peaceful Bench"
-          onInteract={handleInteract}
-          color="#E0D8C8"
-          memoryId="healing"
-        />
-
-        <InteractiveObject
-          position={[0, 1, 4]}
-          objectId="flower"
-          label="New Blooms"
-          onInteract={handleInteract}
-          color="#F0D8E0"
-          memoryId="hope"
-        />
-
-        <InteractiveObject
-          position={[0, 1, 0]}
-          objectId="sky"
-          label="Quiet Rain"
-          onInteract={handleInteract}
-          color="#D8F0E0"
-          memoryId="peace"
-        />
-
-        <OrbitControls
-          enablePan={false}
-          enableZoom={false}
-          enableRotate={false}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 3}
-        />
+        <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} />
       </Canvas>
 
       <GameHUD chapter={5} chapterTitle="The Quiet Rain" nearbyObjects={nearbyObjects} />
       <DialogueBox />
+
+      {showEnding && (
+        <div className="absolute inset-0 bg-background/95 flex items-center justify-center z-50 animate-fade-in">
+          <div className="text-center max-w-2xl p-8">
+            <h1 className="text-5xl font-bold mb-6">The Quiet Rain</h1>
+            <p className="text-xl mb-4">Eli found peace not in changing the past, but in understanding it.</p>
+            <p className="text-lg mb-4">The rain still falls, but it no longer drowns out the truth.</p>
+            <p className="text-md italic">Thank you for playing.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
