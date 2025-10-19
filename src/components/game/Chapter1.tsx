@@ -3,10 +3,13 @@ import { OrbitControls, Sky } from '@react-three/drei';
 import { Player } from './Player';
 import { Environment } from './Environment';
 import { InteractiveObject } from './InteractiveObject';
+import { Bully } from './Bully';
+import { NPC } from './NPC';
 import { useGameStore } from '@/store/gameStore';
 import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
 import { useEffect, useState, useRef } from 'react';
+import leahImage from '@/assets/character-leah.png';
 
 import photoImage from '@/assets/object-photo.png';
 import newspaperImage from '@/assets/object-newspaper.png';
@@ -19,11 +22,14 @@ export const Chapter1 = () => {
   const addMemory = useGameStore((state) => state.addMemory);
   const completeChapter = useGameStore((state) => state.completeChapter);
   const triggerSensoryOverload = useGameStore((state) => state.triggerSensoryOverload);
+  const triggerPanicAttack = useGameStore((state) => state.triggerPanicAttack);
   const sensoryOverload = useGameStore((state) => state.sensoryOverload);
+  const isDead = useGameStore((state) => state.isDead);
   const playerPosition = useGameStore((state) => state.playerPosition);
   const collectedMemories = useGameStore((state) => state.progress.collectedMemories);
 
   const [nearbyObjects, setNearbyObjects] = useState<Array<{ id: string; distance: number }>>([]);
+  const [npcDialogueIndex, setNpcDialogueIndex] = useState(0);
 
   const chapterMemories = ['photo-rowan', 'newspaper-article', 'childhood-drawing', 'mirror-reflection', 'rowans-box'];
   
@@ -111,6 +117,20 @@ export const Chapter1 = () => {
     }
   };
 
+  const handleNPCInteract = (npcId: string, dialogues: string[]) => {
+    if (npcId === 'leah') {
+      setDialogue(dialogues[npcDialogueIndex % dialogues.length]);
+      setNpcDialogueIndex(prev => prev + 1);
+    }
+  };
+
+  const handleBullyContact = () => {
+    if (!isDead) {
+      triggerPanicAttack();
+      setDialogue("Too close... can't breathe... everything is spinning...");
+    }
+  };
+
   return (
     <div className="w-full h-screen relative">
       <Canvas
@@ -138,7 +158,37 @@ export const Chapter1 = () => {
 
         {/* Game Objects */}
         <Player onInteract={handleInteract} nearbyObjects={nearbyObjects} />
-        <Environment />
+        <Environment theme="home" />
+        
+        {/* Bullies */}
+        <Bully
+          id="bully1"
+          initialPosition={[5, 1, -5]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+        <Bully
+          id="bully2"
+          initialPosition={[-7, 1, 3]}
+          onPlayerContact={handleBullyContact}
+          playerPosition={playerPosition}
+        />
+        
+        {/* NPC - Leah */}
+        <NPC
+          id="leah"
+          name="Leah"
+          position={[-8, 1, -8]}
+          textureUrl={leahImage}
+          dialogues={[
+            "Eli? Is that really you? I haven't seen you in so long...",
+            "I always believed you were a good kid. What happened that day... it wasn't your fault.",
+            "If you need anything, I'm here. I kept some of Rowan's things. They're in the school.",
+            "Be careful around those troublemakers. They haven't changed much."
+          ]}
+          playerPosition={playerPosition}
+          onInteract={handleNPCInteract}
+        />
 
         {/* Interactive Objects */}
         <InteractiveObject
@@ -202,6 +252,17 @@ export const Chapter1 = () => {
 
       <GameHUD chapter={1} chapterTitle="Homecoming" nearbyObjects={nearbyObjects} />
       <DialogueBox />
+      
+      {isDead && (
+        <div className="absolute inset-0 bg-destructive/80 flex items-center justify-center z-50">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-destructive-foreground mb-4 animate-pulse">
+              Panic Attack
+            </h2>
+            <p className="text-xl text-destructive-foreground">Restarting...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

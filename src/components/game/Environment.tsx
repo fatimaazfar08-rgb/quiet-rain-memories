@@ -1,6 +1,15 @@
 import { Box, Plane } from '@react-three/drei';
+import { useLoader } from '@react-three/fiber';
+import * as THREE from 'three';
 
-export const Environment = () => {
+interface EnvironmentProps {
+  theme?: 'home' | 'bridge' | 'school';
+  backgroundImage?: string;
+}
+
+export const Environment = ({ theme = 'home', backgroundImage }: EnvironmentProps) => {
+  const bgTexture = backgroundImage ? useLoader(THREE.TextureLoader, backgroundImage) : null;
+
   return (
     <>
       {/* Ground */}
@@ -10,7 +19,11 @@ export const Environment = () => {
         position={[0, 0, 0]}
         receiveShadow
       >
-        <meshStandardMaterial color="#2C3E50" roughness={0.8} />
+        {bgTexture ? (
+          <meshStandardMaterial map={bgTexture} />
+        ) : (
+          <meshStandardMaterial color="#2C3E50" roughness={0.8} />
+        )}
       </Plane>
 
       {/* Walls creating a room */}

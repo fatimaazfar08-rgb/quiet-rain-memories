@@ -22,6 +22,7 @@ interface GameState {
   // Player State
   playerPosition: [number, number, number];
   sensoryOverload: boolean;
+  isDead: boolean;
   
   // Actions
   setCurrentChapter: (chapter: number) => void;
@@ -36,6 +37,7 @@ interface GameState {
   
   setPlayerPosition: (position: [number, number, number]) => void;
   triggerSensoryOverload: (duration?: number) => void;
+  triggerPanicAttack: () => void;
   
   resetProgress: () => void;
 }
@@ -59,6 +61,7 @@ export const useGameStore = create<GameState>()(
       currentDialogue: null,
       playerPosition: [0, 0, 0],
       sensoryOverload: false,
+      isDead: false,
       
       // Actions
       setCurrentChapter: (chapter) =>
@@ -106,6 +109,14 @@ export const useGameStore = create<GameState>()(
         setTimeout(() => set({ sensoryOverload: false }), duration);
       },
       
+      triggerPanicAttack: () => {
+        set({ isDead: true, sensoryOverload: true });
+        setTimeout(() => {
+          // Reload the page to restart
+          window.location.reload();
+        }, 3000);
+      },
+      
       resetProgress: () =>
         set({
           progress: initialProgress,
@@ -115,6 +126,7 @@ export const useGameStore = create<GameState>()(
           currentDialogue: null,
           playerPosition: [0, 0, 0],
           sensoryOverload: false,
+          isDead: false,
         }),
     }),
     {
