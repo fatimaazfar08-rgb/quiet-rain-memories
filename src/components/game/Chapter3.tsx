@@ -1,3 +1,4 @@
+// Chapter3.tsx (modified with transition freeze via frameloop)
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky } from '@react-three/drei';
 import { Player } from './Player';
@@ -327,6 +328,7 @@ export const Chapter3 = () => {
         className={`${sensoryOverload ? 'sensory-overload' : ''} ${
           isTransitionActive ? 'opacity-10 pointer-events-none' : ''
         } transition-all duration-1000`}
+        frameloop={isTransitionActive ? 'demand' : 'always'} // Added for transition freeze: pauses animations/movement
       >
         <ambientLight intensity={0.35} />
         <directionalLight

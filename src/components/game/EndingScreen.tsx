@@ -44,6 +44,26 @@ export const EndingScreen = () => {
     return () => clearTimeout(timer);
   }, [currentSlide, slides.length]);
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'n') {
+        if (currentSlide < slides.length - 1) {
+          setCurrentSlide(prev => prev + 1);
+        }
+      } else if (event.key === 'p') {
+        if (currentSlide > 0) {
+          setCurrentSlide(prev => prev - 1);
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentSlide, slides.length]);
+
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1);

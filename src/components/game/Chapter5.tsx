@@ -2,7 +2,6 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky, Text, Box, Plane } from '@react-three/drei';
 import { RainEffect } from './RainEffect';
 import { useGameStore } from '@/store/gameStore';
-import { GameHUD } from '../ui/GameHUD';
 import { DialogueBox } from '../ui/DialogueBox';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useEffect, useState, useTransition } from 'react';
@@ -332,12 +331,6 @@ export const Chapter5 = () => {
         />
       </Canvas>
       
-      <GameHUD
-        chapter={5}
-        chapterTitle="The Quiet Rain"
-        nearbyObjects={nearbyObjects}
-        isTransitioning={isTransitioning}
-      />
       <DialogueBox />
       
       {isDead && transitionPhase === 'none' && (

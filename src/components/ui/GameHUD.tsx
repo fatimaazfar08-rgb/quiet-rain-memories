@@ -216,7 +216,7 @@ export const GameHUD = ({
   chapter, 
   chapterTitle, 
   nearbyObjects = [], 
-  isTransitioning = false 
+  isTransitioning = false
 }: GameHUDProps) => {
   const { progress, setMenuOpen, setPaused } = useGameStore();
 

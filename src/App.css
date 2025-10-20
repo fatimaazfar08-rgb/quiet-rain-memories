@@ -104,3 +104,14 @@ body.transition-active .game-hud {
   0%, 100% { filter: brightness(1) contrast(1); }
   50% { filter: brightness(1.2) contrast(1.1); }
 }
+
+.freeze-game {
+  animation-play-state: paused !important;
+}
+.freeze-game * {
+  animation-play-state: paused !important;
+  pointer-events: none !important;
+}
+.freeze-game canvas {
+  filter: blur(2px) !important; /* Optional: slight blur for "frozen" feel */
+}
