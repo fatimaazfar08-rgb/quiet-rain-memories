@@ -64,28 +64,25 @@ export const ChapterSelect = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-primary/5">
-      <div className="flex-shrink-0 p-8 border-b"> {/* Fixed header */}
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Chapter Select</h1>
-              <p className="text-muted-foreground">
-                Continue your journey through Eli&apos;s memories
-              </p>
-            </div>
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Menu
-            </Button>
+      {/* Fixed header - no scroll */}
+      <header className="flex-shrink-0 px-8 py-6 border-b bg-background/80 backdrop-blur-sm"> {/* Slight blur for depth */}
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-1">Chapter Select</h1>
+            <p className="text-muted-foreground text-sm">Continue your journey through Eli&apos;s memories</p>
           </div>
+          <Button variant="ghost" onClick={() => navigate('/')} size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Menu
+          </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 overflow-y-auto p-8"> {/* Scrollable content */}
+      {/* Scrollable content area */}
+      <main className="flex-1 overflow-y-auto px-8 py-6"> {/* Reduced py for more space */}
         <div className="max-w-6xl mx-auto">
-          {/* Chapters Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Chapters Grid - compact gap on small screens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8"> {/* Responsive gap */}
             {chapters.map((chapter) => {
               const unlocked = isChapterUnlocked(chapter.number);
               const completed = isChapterCompleted(chapter.number);
@@ -93,37 +90,37 @@ export const ChapterSelect = () => {
               return (
                 <Card
                   key={chapter.number}
-                  className={`p-6 transition-all duration-300 ${
+                  className={`p-4 md:p-6 transition-all duration-300 h-fit ${ /* Compact on small screens */
                     unlocked
                       ? 'cursor-pointer hover:scale-105 hover:shadow-[0_0_30px_rgba(107,143,181,0.3)] border-primary/30'
                       : 'opacity-50 cursor-not-allowed'
                   }`}
                   onClick={() => handleChapterClick(chapter.number)}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-primary">
+                  <div className="flex items-start justify-between mb-3 md:mb-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xl md:text-2xl font-bold text-primary">
                           {chapter.number}
                         </span>
                       </div>
                       {completed && (
-                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                          <Check className="w-5 h-5 text-accent-foreground" />
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 md:w-5 md:h-5 text-accent-foreground" />
                         </div>
                       )}
                       {!unlocked && (
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                          <Lock className="w-5 h-5 text-muted-foreground" />
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                          <Lock className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1 md:mb-2">
                     {chapter.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
                     {unlocked ? chapter.description : 'Complete previous chapters to unlock'}
                   </p>
                 </Card>
@@ -131,38 +128,38 @@ export const ChapterSelect = () => {
             })}
           </div>
 
-          {/* Progress Summary */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Your Progress</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Progress Summary - always visible on scroll */}
+          <Card className="p-4 md:p-6 sticky bottom-6 md:bottom-auto bg-background/90 backdrop-blur-sm"> {/* Slight stick + blur for visibility */}
+            <h3 className="text-base md:text-lg font-semibold text-foreground mb-3 md:mb-4">Your Progress</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <div className="text-center">
-                <p className="text-3xl font-bold text-primary">
+                <p className="text-2xl md:text-3xl font-bold text-primary">
                   {(progress?.completedChapters ?? []).length}
                 </p>
-                <p className="text-sm text-muted-foreground">Chapters Completed</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Chapters Completed</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-accent">
+                <p className="text-2xl md:text-3xl font-bold text-accent">
                   {(progress?.collectedMemories ?? []).length}
                 </p>
-                <p className="text-sm text-muted-foreground">Memories Collected</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Memories Collected</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-hope">
+                <p className="text-2xl md:text-3xl font-bold text-hope">
                   {Object.keys(progress?.storyFlags ?? {}).length}
                 </p>
-                <p className="text-sm text-muted-foreground">Story Events</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Story Events</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-water">
+                <p className="text-2xl md:text-3xl font-bold text-water">
                   {Math.round(((progress?.completedChapters ?? []).length / 5) * 100)}%
                 </p>
-                <p className="text-sm text-muted-foreground">Overall Progress</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Overall Progress</p>
               </div>
             </div>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
