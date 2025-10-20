@@ -1,74 +1,75 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface GameProgress {
-  currentChapter: number;
-  completedChapters: number[];
-  collectedMemories: string[];
-  anxietyLevel: number;
-  storyFlags: Record<string, boolean>;
+interface Dialogue {
+  text: string;
+  speaker: string;
 }
 
 interface GameState {
-  // Progress
-  progress: GameProgress;
-  
-  // UI State
-  isMenuOpen: boolean;
-  isPaused: boolean;
+  dialogue: Dialogue | null;
   showDialogue: boolean;
-  currentDialogue: string | null;
-  
-  // Player State
   playerPosition: [number, number, number];
+  progress: {
+    collectedMemories: string[];
+    completedChapters: number[];
+    currentChapter: number;
+    storyFlags: Record<string, boolean>;
+  };
   sensoryOverload: boolean;
   isDead: boolean;
-  
-  // Actions
-  setCurrentChapter: (chapter: number) => void;
-  completeChapter: (chapter: number) => void;
+  anxietyLevel: number;
+  isPaused: boolean;
+  isMenuOpen: boolean;
+
+  setDialogue: (dialogue: Dialogue | null) => void;
   addMemory: (memoryId: string) => void;
-  setAnxietyLevel: (level: number) => void;
-  setStoryFlag: (flag: string, value: boolean) => void;
-  
-  setMenuOpen: (open: boolean) => void;
-  setPaused: (paused: boolean) => void;
-  setDialogue: (text: string | null) => void;
-  
-  setPlayerPosition: (position: [number, number, number]) => void;
-  triggerSensoryOverload: (duration?: number) => void;
-  triggerPanicAttack: () => void;
-  
+  completeChapter: (chapter: number) => void;
+  setCurrentChapter: (chapter: number) => void;
   resetProgress: () => void;
+  resetDeath: () => void;
+  triggerSensoryOverload: (duration: number) => void;
+  triggerPanicAttack: () => void;
+  setPlayerPosition: (position: [number, number, number]) => void;
+  setPaused: (paused: boolean) => void;
+  setMenuOpen: (open: boolean) => void;
+  setAnxietyLevel: (level: number) => void;
 }
 
-const initialProgress: GameProgress = {
-  currentChapter: 1,
-  completedChapters: [],
+const initialProgress = {
   collectedMemories: [],
-  anxietyLevel: 0,
+  completedChapters: [],
+  currentChapter: 1,
   storyFlags: {},
 };
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      // Initial state
-      progress: initialProgress,
-      isMenuOpen: false,
-      isPaused: false,
+      dialogue: null,
       showDialogue: false,
-      currentDialogue: null,
-      playerPosition: [0, 0, 0],
+      playerPosition: [0, 1, 0],
+      progress: initialProgress,
       sensoryOverload: false,
       isDead: false,
-      
-      // Actions
-      setCurrentChapter: (chapter) =>
+      anxietyLevel: 0,
+      isPaused: false,
+      isMenuOpen: false,
+
+      setDialogue: (newDialogue) =>
+        set({
+          dialogue: newDialogue,
+          showDialogue: !!newDialogue,
+        }),
+
+      addMemory: (memoryId) =>
         set((state) => ({
-          progress: { ...state.progress, currentChapter: chapter },
+          progress: {
+            ...state.progress,
+            collectedMemories: [...state.progress.collectedMemories, memoryId],
+          },
         })),
-      
+
       completeChapter: (chapter) =>
         set((state) => ({
           progress: {
@@ -76,62 +77,54 @@ export const useGameStore = create<GameState>()(
             completedChapters: [...new Set([...state.progress.completedChapters, chapter])],
           },
         })),
-      
-      addMemory: (memoryId) =>
+
+      setCurrentChapter: (chapter) =>
         set((state) => ({
-          progress: {
-            ...state.progress,
-            collectedMemories: [...new Set([...state.progress.collectedMemories, memoryId])],
-          },
+          progress: { ...state.progress, currentChapter: chapter },
         })),
-      
-      setAnxietyLevel: (level) =>
-        set((state) => ({
-          progress: { ...state.progress, anxietyLevel: Math.max(0, Math.min(100, level)) },
-        })),
-      
-      setStoryFlag: (flag, value) =>
-        set((state) => ({
-          progress: {
-            ...state.progress,
-            storyFlags: { ...state.progress.storyFlags, [flag]: value },
-          },
-        })),
-      
-      setMenuOpen: (open) => set({ isMenuOpen: open }),
-      setPaused: (paused) => set({ isPaused: paused }),
-      setDialogue: (text) => set({ currentDialogue: text, showDialogue: text !== null }),
-      
-      setPlayerPosition: (position) => set({ playerPosition: position }),
-      
-      triggerSensoryOverload: (duration = 3000) => {
+
+      resetProgress: () => set({ 
+        progress: initialProgress,
+      }),
+
+      resetDeath: () => set({ 
+        isDead: false,
+        sensoryOverload: false,
+        anxietyLevel: 0,
+      }),
+
+      triggerSensoryOverload: (duration) => {
         set({ sensoryOverload: true });
         setTimeout(() => set({ sensoryOverload: false }), duration);
       },
-      
+
       triggerPanicAttack: () => {
-        set({ isDead: true, sensoryOverload: true });
+        set({ 
+          isDead: true,
+          anxietyLevel: 100,
+        });
         setTimeout(() => {
-          // Reload the page to restart
-          window.location.reload();
-        }, 3000);
+          const state = get();
+          if (state.isDead) {
+            set({ 
+              isDead: false,
+              anxietyLevel: 0,
+            });
+          }
+        }, 5000); // Auto-respawn after 5 seconds
       },
-      
-      resetProgress: () =>
-        set({
-          progress: initialProgress,
-          isMenuOpen: false,
-          isPaused: false,
-          showDialogue: false,
-          currentDialogue: null,
-          playerPosition: [0, 0, 0],
-          sensoryOverload: false,
-          isDead: false,
-        }),
+
+      setPlayerPosition: (position) => set({ playerPosition: position }),
+      setPaused: (paused) => set({ isPaused: paused }),
+      setMenuOpen: (open) => set({ isMenuOpen: open }),
+      setAnxietyLevel: (level) => set({ anxietyLevel: level }),
     }),
-    {
-      name: 'quiet-rain-save',
-      partialize: (state) => ({ progress: state.progress }),
+    { 
+      name: 'game-storage',
+      partialize: (state) => ({
+        progress: state.progress,
+        playerPosition: state.playerPosition,
+      }),
     }
   )
 );

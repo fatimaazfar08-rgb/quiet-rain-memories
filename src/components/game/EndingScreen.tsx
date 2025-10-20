@@ -57,7 +57,9 @@ export const EndingScreen = () => {
   };
 
   const handleFinish = () => {
-    navigate('/');
+    // ✅ BETTER: Go to main menu or credits
+    navigate('/'); // Main menu
+    // OR: navigate('/credits'); // If you have credits page
   };
 
   return (
@@ -116,7 +118,7 @@ export const EndingScreen = () => {
               onClick={handleFinish}
               className="px-8 py-3 bg-blue-500 hover:bg-blue-600"
             >
-              Finish
+              Finish & Return Home
             </Button>
           )}
         </div>

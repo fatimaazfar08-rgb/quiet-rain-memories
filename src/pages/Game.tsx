@@ -19,13 +19,14 @@ export default function Game() {
   const { chapterNumber } = useParams<{ chapterNumber: string }>();
   const navigate = useNavigate();
   const setCurrentChapter = useGameStore((state) => state.setCurrentChapter);
-  
+  const resetDeath = useGameStore((state) => state.resetDeath);
+
   const chapter = parseInt(chapterNumber || '1', 10);
 
   useEffect(() => {
+    resetDeath();
     setCurrentChapter(chapter);
 
-    // Handle ESC key for menu
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (confirm('Return to main menu?')) {
@@ -36,7 +37,7 @@ export default function Game() {
 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [chapter, navigate, setCurrentChapter]);
+  }, [chapter, navigate, setCurrentChapter, resetDeath]);
 
   const ChapterComponent = ChapterComponents[chapter];
 

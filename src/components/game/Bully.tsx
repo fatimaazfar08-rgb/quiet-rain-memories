@@ -20,6 +20,7 @@ export const Bully = ({ id, initialPosition, onPlayerContact, playerPosition }: 
     Math.random() * 2 - 1
   ).normalize());
   const changeDirectionTimer = useRef(0);
+  const contactCooldown = useRef(0); // Prevent spam
 
   useEffect(() => {
     if (bullyRef.current) {
@@ -30,9 +31,13 @@ export const Bully = ({ id, initialPosition, onPlayerContact, playerPosition }: 
   useFrame((state, delta) => {
     if (!bullyRef.current) return;
 
-    // Change direction randomly every 2-4 seconds
+    // Cooldown for contact
+    contactCooldown.current -= delta;
+    if (contactCooldown.current > 0) return;
+
+    // Change direction randomly every 3-5 seconds (slower for bedroom)
     changeDirectionTimer.current += delta;
-    if (changeDirectionTimer.current > Math.random() * 2 + 2) {
+    if (changeDirectionTimer.current > 3 + Math.random() * 2) {
       moveDirection.current = new THREE.Vector3(
         Math.random() * 2 - 1,
         0,
@@ -41,14 +46,14 @@ export const Bully = ({ id, initialPosition, onPlayerContact, playerPosition }: 
       changeDirectionTimer.current = 0;
     }
 
-    // Move bully
-    const moveSpeed = 2;
+    // Move bully (slower speed for bedroom)
+    const moveSpeed = 1.5; // Reduced from 2
     bullyRef.current.position.x += moveDirection.current.x * moveSpeed * delta;
     bullyRef.current.position.z += moveDirection.current.z * moveSpeed * delta;
 
-    // Keep within bounds
-    bullyRef.current.position.x = Math.max(-15, Math.min(15, bullyRef.current.position.x));
-    bullyRef.current.position.z = Math.max(-15, Math.min(15, bullyRef.current.position.z));
+    // Keep within bedroom bounds
+    bullyRef.current.position.x = Math.max(-12, Math.min(12, bullyRef.current.position.x));
+    bullyRef.current.position.z = Math.max(-12, Math.min(12, bullyRef.current.position.z));
 
     // Check distance to player
     const distance = Math.sqrt(
@@ -59,6 +64,7 @@ export const Bully = ({ id, initialPosition, onPlayerContact, playerPosition }: 
     // If player gets too close, trigger panic attack
     if (distance < 2.5) {
       onPlayerContact();
+      contactCooldown.current = 2; // 2 second cooldown
     }
   });
 
@@ -72,12 +78,13 @@ export const Bully = ({ id, initialPosition, onPlayerContact, playerPosition }: 
           side={THREE.DoubleSide}
         />
       </Plane>
-      {/* Warning zone visualization */}
-      <mesh position={[0, -0.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[2.3, 2.5, 32]} />
-        <meshBasicMaterial color="#ff4444" transparent opacity={0.3} />
-      </mesh>
+      {/* Warning zone visualization - only in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <mesh position={[0, -0.9, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[2.3, 2.5, 32]} />
+          <meshBasicMaterial color="#ff4444" transparent opacity={0.1} />
+        </mesh>
+      )}
     </group>
   );
 };
-

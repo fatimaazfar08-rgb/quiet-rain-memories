@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom';
 export const MainMenu = () => {
   const navigate = useNavigate();
   const { progress, setCurrentChapter, resetProgress } = useGameStore();
-  const hasProgress = progress.completedChapters.length > 0 || progress.collectedMemories.length > 0;
+
+  const hasProgress = progress && 
+    ((progress.completedChapters?.length ?? 0) > 0 || (progress.collectedMemories?.length ?? 0) > 0);
 
   const handleNewGame = () => {
     if (hasProgress) {
@@ -22,7 +24,8 @@ export const MainMenu = () => {
   };
 
   const handleContinue = () => {
-    navigate(`/chapter/${progress.currentChapter}`);
+    const chapter = progress?.currentChapter || 1;
+    navigate(`/chapter/${chapter}`);
   };
 
   const handleChapterSelect = () => {

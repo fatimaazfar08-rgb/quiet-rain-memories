@@ -24,7 +24,7 @@ const chapters: ChapterInfo[] = [
   {
     number: 3,
     title: 'The Sketchbook',
-    description: 'Discover Rowan\'s hidden drawings and uncover what really happened.',
+    description: "Discover Rowan's hidden drawings and uncover what really happened.",
   },
   {
     number: 4,
@@ -43,7 +43,8 @@ export const ChapterSelect = () => {
   const { progress, setCurrentChapter } = useGameStore();
 
   const handleChapterClick = (chapterNumber: number) => {
-    const isUnlocked = chapterNumber === 1 || progress.completedChapters.includes(chapterNumber - 1);
+    const completedChapters = progress?.completedChapters ?? [];
+    const isUnlocked = chapterNumber === 1 || completedChapters.includes(chapterNumber - 1);
     
     if (isUnlocked) {
       setCurrentChapter(chapterNumber);
@@ -52,11 +53,13 @@ export const ChapterSelect = () => {
   };
 
   const isChapterUnlocked = (chapterNumber: number) => {
-    return chapterNumber === 1 || progress.completedChapters.includes(chapterNumber - 1);
+    const completedChapters = progress?.completedChapters ?? [];
+    return chapterNumber === 1 || completedChapters.includes(chapterNumber - 1);
   };
 
   const isChapterCompleted = (chapterNumber: number) => {
-    return progress.completedChapters.includes(chapterNumber);
+    const completedChapters = progress?.completedChapters ?? [];
+    return completedChapters.includes(chapterNumber);
   };
 
   return (
@@ -129,25 +132,25 @@ export const ChapterSelect = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <p className="text-3xl font-bold text-primary">
-                {progress.completedChapters.length}
+                {(progress?.completedChapters ?? []).length}
               </p>
               <p className="text-sm text-muted-foreground">Chapters Completed</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-accent">
-                {progress.collectedMemories.length}
+                {(progress?.collectedMemories ?? []).length}
               </p>
               <p className="text-sm text-muted-foreground">Memories Collected</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-hope">
-                {Object.keys(progress.storyFlags).length}
+                {Object.keys(progress?.storyFlags ?? {}).length}
               </p>
               <p className="text-sm text-muted-foreground">Story Events</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-water">
-                {Math.round((progress.completedChapters.length / 5) * 100)}%
+                {Math.round(((progress?.completedChapters ?? []).length / 5) * 100)}%
               </p>
               <p className="text-sm text-muted-foreground">Overall Progress</p>
             </div>
