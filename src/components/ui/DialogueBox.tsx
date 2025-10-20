@@ -9,22 +9,41 @@ export const DialogueBox = () => {
   const typeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cachedTransformedText = useRef<string>('');
 
-  // Transform text only for 'player' or 'Eli' speakers
+  // Transform text for 'player' (Eli) or 'Eli': reverse word order (no letter reversal) for jumbled memories
   const getTransformedText = useCallback((originalText: string, speaker: string): string => {
-    if (speaker !== 'player' && speaker !== 'Eli') {
-      return originalText; // No transformation for non-player/Eli speakers
+    const normalizedSpeaker = speaker.toLowerCase().trim(); // Case-insensitive
+    console.log('Speaker received (normalized):', normalizedSpeaker); // Debug: exact speaker value
+    console.log('Original text input:', originalText); // Debug: see exact original
+    if (normalizedSpeaker !== 'player' && normalizedSpeaker !== 'eli') {
+      // Normal for Miss Leah, etc.
+      console.log('No transformation: Speaker is', speaker);
+      return originalText;
     }
     
-    // Deterministic transformation for player/Eli
+    // For player/Eli: Split into words, reverse the LIST OF WORDS (order only), join back – words unchanged
+    const words = originalText.trim().split(/\s+/);
+    console.log('Player/Eli words before reverse:', words); // Debug: check split
+    const jumbledWords = [...words].reverse(); // Copy array, reverse ORDER – NO string.reverse() here!
+    console.log('Player/Eli words after reverse:', jumbledWords); // Debug: reversed order, words intact
+    const jumbledText = jumbledWords.join(' ');
+    console.log('Player/Eli jumbled text (word order reversed):', jumbledText); // Debug: full jumbled, letters normal
+    
+    // Fixed echo (deterministic based on text length)
     const patterns = [
-      `${originalText} ... It repeats in my head. The echo is too loud.`,
-      `${originalText} Exactly like that. No deviations. But the lights buzz—distracting.`,
-      `${originalText} ... I feel the weight. Patterns shifting. Sensory input overload.`,
+      ` ... It repeats in my head. The echo is too loud.`,
+      ` Exactly like that. No deviations. But the lights buzz—distracting.`,
+      ` ... I feel the weight. Patterns shifting. Sensory input overload.`,
     ];
-    return patterns[Date.now() % patterns.length];
+    const patternIndex = originalText.length % patterns.length;
+    const echo = patterns[patternIndex];
+    console.log('Player/Eli echo added:', echo); // Debug
+    
+    const fullTransformed = `${jumbledText}${echo}`;
+    console.log('FULL Player/Eli transformed (for typing & skip):', fullTransformed); // Debug: exact string used everywhere
+    return fullTransformed;
   }, []);
 
-  // Typewriter effect with proper cleanup
+  // Typewriter: Types the EXACT SAME transformed string forward (normal letters)
   useEffect(() => {
     if (!dialogue || !showDialogue) {
       setDisplayedText('');
@@ -35,6 +54,8 @@ export const DialogueBox = () => {
       }
       return;
     }
+
+    console.log('Full dialogue object:', dialogue); // Debug: entire dialogue to see speaker/text
 
     const transformedText = getTransformedText(dialogue.text, dialogue.speaker);
     cachedTransformedText.current = transformedText;
@@ -50,19 +71,26 @@ export const DialogueBox = () => {
     let index = 0;
     const typingSpeed = 30;
 
-    console.log('Rendering dialogue:', { text: transformedText, speaker: dialogue.speaker }); // Debug log
+    // Debug: Log first 20 chars – should be NORMAL letters from start of jumbled (or original if not player/Eli)
+    console.log('First 20 chars to type (NORMAL order):', transformedText.slice(0, 20));
 
     typeIntervalRef.current = setInterval(() => {
       if (index < transformedText.length) {
-        setDisplayedText((prev) => prev + transformedText[index]);
+        // FORWARD: Add next char normally (e.g., 'o' then 'v' for "overload")
+        const nextChar = transformedText[index];
+        setDisplayedText((prev) => prev + nextChar);
+        if (index < 20) {
+          console.log(`Typing char ${index}: "${nextChar}"`); // Debug first 20 adds
+        }
         index++;
       } else {
+        setDisplayedText(transformedText); // Full same text
         setIsTyping(false);
         if (typeIntervalRef.current) {
           clearInterval(typeIntervalRef.current);
           typeIntervalRef.current = null;
         }
-        console.log('Displayed text:', displayedText); // Debug log after typing
+        console.log('Typing done: Full text matches skip');
       }
     }, typingSpeed);
 
@@ -71,11 +99,10 @@ export const DialogueBox = () => {
         clearInterval(typeIntervalRef.current);
         typeIntervalRef.current = null;
       }
-      console.log('DialogueBox cleanup'); // Debug log
     };
   }, [dialogue?.text, dialogue?.speaker, showDialogue, getTransformedText]);
 
-  // Memoized handleClose
+  // Skip: Jumps to SAME full transformed text (no change)
   const handleClose = useCallback(() => {
     if (typeIntervalRef.current) {
       clearInterval(typeIntervalRef.current);
@@ -85,13 +112,32 @@ export const DialogueBox = () => {
     if (isTyping) {
       setDisplayedText(cachedTransformedText.current);
       setIsTyping(false);
+      console.log('Skip: Set to SAME full text:', cachedTransformedText.current);
     } else {
       setDialogue(null);
       setDisplayedText('');
+      console.log('Continue: Advance');
     }
   }, [isTyping, setDialogue]);
 
-  // Early return if no dialogue
+  // Keyboard skip (Space/Enter)
+  useEffect(() => {
+    if (!showDialogue) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const skipKeys = [' ', 'Enter'];
+      if (skipKeys.includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log('Key skip:', event.key);
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [showDialogue, handleClose]);
+
   if (!showDialogue || !dialogue) return null;
 
   return (

@@ -297,6 +297,21 @@ export const Chapter2 = () => {
     }
   }, [isDead, playSound, triggerPanicAttack, setDialogue, transitionPhase]);
 
+  // Respawn on 'R' key press during death screen
+  useEffect(() => {
+    if (!isDead || transitionPhase !== 'none') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        resetDeath();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isDead, transitionPhase, resetDeath]);
+
   const isTransitionActive = transitionPhase !== 'none';
 
   // 💔 EMOTIONAL TRANSITION OVERLAY
@@ -507,10 +522,8 @@ export const Chapter2 = () => {
       {isDead && transitionPhase === 'none' && (
         <div className="absolute inset-0 bg-destructive/80 flex items-center justify-center z-50">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-destructive-foreground mb-4 animate-pulse">
-              Panic Attack
-            </h2>
-            <p className="text-xl text-destructive-foreground mb-4">Restarting...</p>
+            <h2 className="text-4xl font-bold text-destructive-foreground mb-4 animate-pulse">Panic Attack</h2>
+            <p className="text-xl text-destructive-foreground mb-4">Restarting... (Press R to Respawn)</p>
             <button
               onClick={() => resetDeath()}
               className="px-6 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors"

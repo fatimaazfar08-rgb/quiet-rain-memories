@@ -7,11 +7,18 @@ export const MainMenu = () => {
   const navigate = useNavigate();
   const { progress, setCurrentChapter, resetProgress } = useGameStore();
 
-  const hasProgress = progress && 
-    ((progress.completedChapters?.length ?? 0) > 0 || (progress.collectedMemories?.length ?? 0) > 0);
+  const completedChapters = progress?.completedChapters ?? [];
+  const hasProgress = completedChapters.length > 0 || (progress?.collectedMemories?.length ?? 0) > 0;
+  const allChaptersCompleted = completedChapters.length === 5; // All 5 chapters done
 
   const handleNewGame = () => {
-    if (hasProgress) {
+    // If all chapters completed or no progress, skip alert and start fresh
+    if (allChaptersCompleted || !hasProgress) {
+      resetProgress();
+      setCurrentChapter(1);
+      navigate('/chapter/1');
+    } else if (hasProgress) {
+      // Only show alert if partial progress
       if (confirm('This will erase your current progress. Continue?')) {
         resetProgress();
         setCurrentChapter(1);
@@ -53,7 +60,7 @@ export const MainMenu = () => {
 
         {/* Menu Buttons */}
         <div className="flex flex-col gap-4 max-w-md mx-auto">
-          {hasProgress && (
+          {hasProgress && !allChaptersCompleted && (
             <Button
               size="lg"
               onClick={handleContinue}
