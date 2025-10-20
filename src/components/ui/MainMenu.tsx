@@ -66,7 +66,7 @@ export const MainMenu = () => {
           {/* Title */}
           <div className="mb-12 animate-fade-in">
             <h1 className="text-6xl font-bold text-foreground mb-4 tracking-tight">
-              What Reminds of Us
+              What Remains of Us
             </h1>
             <p className="text-xl text-muted-foreground">
               A story of memory, misunderstanding, and finding peace
